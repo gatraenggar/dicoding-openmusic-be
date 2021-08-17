@@ -8,9 +8,9 @@ class MusicHandler {
 
     this.postMusicHandler = this.postMusicHandler.bind(this);
     this.getMusicHandler = this.getMusicHandler.bind(this);
-    this.getMusicByIDHandler = this.getMusicByIDHandler.bind(this);
-    this.putMusicByIDHandler = this.putMusicByIDHandler.bind(this);
-    this.deleteMusicByIDHandler = this.deleteMusicByIDHandler.bind(this);
+    this.getMusicByIdHandler = this.getMusicByIdHandler.bind(this);
+    this.putMusicByIdHandler = this.putMusicByIdHandler.bind(this);
+    this.deleteMusicHandler = this.deleteMusicHandler.bind(this);
   }
 
   async postMusicHandler(req, h) {
@@ -62,7 +62,7 @@ class MusicHandler {
     };
   }
 
-  async getMusicByIDHandler(req, h) {
+  async getMusicByIdHandler(req, h) {
     try {
       const {songId} = req.params;
       const musicDetail = await this._service.getMusicByID(songId);
@@ -92,7 +92,7 @@ class MusicHandler {
     }
   }
 
-  async putMusicByIDHandler(req, h) {
+  async putMusicByIdHandler(req, h) {
     try {
       this._validator.validateMusicPayload(req.payload);
 
@@ -124,7 +124,7 @@ class MusicHandler {
     }
   }
 
-  async deleteMusicByIDHandler(req, h) {
+  async deleteMusicHandler(req, h) {
     try {
       const {songId} = req.params;
       await this._service.deleteMusicByID(songId);

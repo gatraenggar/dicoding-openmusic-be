@@ -11,15 +11,14 @@ class MusicService {
   }
 
   async saveMusic({title, year, performer, genre, duration}) {
-    const id = nanoid(16);
+    const id = `song-${nanoid(16)}`;
     const insertedAt = new Date().toISOString();
-    const updatedAt = insertedAt;
 
     const query = {
-      text: 'INSERT INTO music VALUES($1, $2, $3, $4, $5, $6, $7, $8)' +
-            'RETURNING id',
+      text: `INSERT INTO music VALUES($1, $2, $3, $4, $5, $6, $7, $7)
+             RETURNING id`,
       values: [
-        id, title, year, performer, genre, duration, insertedAt, updatedAt,
+        id, title, year, performer, genre, duration, insertedAt,
       ],
     };
 
@@ -45,7 +44,7 @@ class MusicService {
 
     const res = await this._pool.query(query);
 
-    if (!res.rows.length) {
+    if (!res.rowCount) {
       throw new NotFoundError('Musik tidak ditemukan');
     }
 
@@ -55,15 +54,21 @@ class MusicService {
   async updateMusicById(songId, {title, year, performer, genre, duration}) {
     const updatedAt = new Date().toISOString();
     const query = {
-      text: 'UPDATE music SET title = $1, year = $2, performer = $3,' +
-            'genre = $4, duration = $5, updated_at = $6 WHERE id = $7' +
-            'RETURNING id',
+      text: `UPDATE music SET 
+                title = $1, 
+                year = $2, 
+                performer = $3,
+                genre = $4, 
+                duration = $5, 
+                updated_at = $6 
+             WHERE id = $7 
+             RETURNING id`,
       values: [title, year, performer, genre, duration, updatedAt, songId],
     };
 
     const res = await this._pool.query(query);
 
-    if (!res.rows.length) {
+    if (!res.rowCount) {
       throw new NotFoundError('Gagal mengupdate musik. ID tidak ditemukan');
     }
   }
@@ -76,7 +81,7 @@ class MusicService {
 
     const res = await this._pool.query(query);
 
-    if (!res.rows.length) {
+    if (!res.rowCount) {
       throw new NotFoundError('Musik gagal dihapus. ID tidak ditemukan');
     }
   }
