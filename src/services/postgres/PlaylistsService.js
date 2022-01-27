@@ -9,8 +9,9 @@ const {
 } = require('../../utils');
 
 class PlaylistsService {
-  constructor() {
+  constructor(cacheService) {
     this._pool = new Pool();
+    this._cacheService = cacheService;
   }
 
   async addPlaylist({name, credentialId}) {
@@ -27,6 +28,7 @@ class PlaylistsService {
       throw new InvariantError('Playlist gagal ditambahkan');
     }
 
+    await this._cacheService.delete(`music:${credentialId}`);
     return res.rows[0].id;
   }
 
@@ -64,9 +66,11 @@ class PlaylistsService {
     if (!result.rows.length) {
       throw new ClientError('Playlist gagal dihapus. Id tidak ditemukan');
     }
+
+    await this._cacheService.delete(`music:${credentialId}`);
   }
 
-  async addSongToPlaylist({playlistId, songId}) {
+  async addSongToPlaylist({playlistId, songId, credentialId}) {
     const id = `playlistsong-${nanoid(16)}`;
 
     const query = {
@@ -80,23 +84,33 @@ class PlaylistsService {
       throw new InvariantError('Lagu gagal ditambahkan');
     }
 
+    await this._cacheService.delete(`music:${credentialId}`);
     return res.rows[0].id;
   }
 
-  async getPlaylistSongs({playlistId}) {
-    const query = {
-      text: `SELECT * FROM playlistsongs 
-             JOIN music ON playlistsongs.song_id = music.id
-             WHERE playlist_id = $1`,
-      values: [playlistId],
-    };
+  async getPlaylistSongs({playlistId, credentialId}) {
+    try {
+      const result = await this._cacheService.get(`music:${credentialId}`);
+      return JSON.parse(result);
+    } catch (error) {
+      const query = {
+        text: `SELECT * FROM playlistsongs 
+               JOIN music ON playlistsongs.song_id = music.id
+               WHERE playlist_id = $1`,
+        values: [playlistId],
+      };
 
-    const result = await this._pool.query(query);
+      const result = await this._pool.query(query);
+      const mappedResult = result.rows.map(mapDBToSongsModel);
+      await this._cacheService.set(
+          `music:${credentialId}`, JSON.stringify(mappedResult),
+      );
 
-    return result.rows.map(mapDBToSongsModel);
+      return mappedResult;
+    }
   }
 
-  async deletePlaylistSong({songId, playlistId}) {
+  async deletePlaylistSong({songId, playlistId, credentialId}) {
     const query = {
       text: `DELETE FROM playlistsongs WHERE song_id = $1 
              AND playlist_id = $2 RETURNING id`,
@@ -108,6 +122,8 @@ class PlaylistsService {
     if (!result.rows.length) {
       throw new ClientError('Lagu gagal dihapus. Id tidak ditemukan');
     }
+
+    await this._cacheService.delete(`music:${credentialId}`);
   }
 }
 

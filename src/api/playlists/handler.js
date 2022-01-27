@@ -124,7 +124,7 @@ class PlaylistsHandler {
 
       if (!userPlaylist.length || userPlaylist[0].owner !== credentialId) throw new AuthorizationError('Autorisasi gagal');
 
-      await this._playlistsService.addSongToPlaylist({playlistId, songId});
+      await this._playlistsService.addSongToPlaylist({playlistId, songId, credentialId});
 
       const response = h.response({
         status: 'success',
@@ -163,7 +163,7 @@ class PlaylistsHandler {
 
       if (!userPlaylist.length || userPlaylist[0].owner !== credentialId) throw new AuthorizationError('Autorisasi gagal');
 
-      const songs = await this._playlistsService.getPlaylistSongs({playlistId});
+      const songs = await this._playlistsService.getPlaylistSongs({playlistId, credentialId});
       return {
         status: 'success',
         data: {
@@ -202,7 +202,7 @@ class PlaylistsHandler {
 
       if (!userPlaylist.length || userPlaylist[0].owner !== credentialId) throw new AuthorizationError('Autorisasi gagal');
 
-      await this._playlistsService.deletePlaylistSong({songId, playlistId});
+      await this._playlistsService.deletePlaylistSong({songId, playlistId, credentialId});
       return {
         status: 'success',
         message: 'Lagu berhasil dihapus dari playlist',
